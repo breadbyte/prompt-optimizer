@@ -1,7 +1,7 @@
 import nltk
 
 from prompt_optimizer.poptim.base import PromptOptim
-
+from .logger import logger
 
 class StopWordOptim(PromptOptim):
     """
@@ -17,6 +17,12 @@ class StopWordOptim(PromptOptim):
 
     """
 
+    def download(self):
+        """
+        Downloads the required NLTK resources.
+        """
+        nltk.download("stopwords")
+
     def __init__(self, verbose: bool = False, metrics: list = []):
         """
         Initializes the StopWordOptim object with the specified parameters.
@@ -28,9 +34,11 @@ class StopWordOptim(PromptOptim):
         super().__init__(verbose, metrics)
         try:
             self.stop_words = set(nltk.corpus.stopwords.words("english"))
-        except Exception:
-            nltk.download("stopwords")
+        except Exception as e:
+            logger.error(f"Error in initializing StopWordOptim, attempting to download resources: {e}")
+            self.download()
             self.stop_words = set(nltk.corpus.stopwords.words("english"))
+
 
     def optimize(self, prompt: str) -> str:
         """

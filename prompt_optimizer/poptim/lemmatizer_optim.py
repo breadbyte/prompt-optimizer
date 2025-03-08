@@ -3,6 +3,7 @@ from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 
 from prompt_optimizer.poptim.base import PromptOptim
+from .logger import logger
 
 
 class LemmatizerOptim(PromptOptim):
@@ -18,6 +19,14 @@ class LemmatizerOptim(PromptOptim):
         >>> optimized_prompt = res.content
     """
 
+    def download(self):
+        """
+        Preloads the required NLTK resources.
+        """
+        nltk.download("averaged_perceptron_tagger")
+        nltk.download("wordnet")
+
+
     def __init__(self, verbose: bool = False, metrics: list = []):
         """
         Initializes the LemmatizerOptim.
@@ -27,9 +36,12 @@ class LemmatizerOptim(PromptOptim):
             metrics (list, optional): A list of metric names to evaluate during optimization. Defaults to an empty list.
         """
         super().__init__(verbose, metrics)
-        self.lemmatizer = WordNetLemmatizer()
-        nltk.download("averaged_perceptron_tagger")
-        nltk.download("wordnet")
+        try:
+            self.lemmatizer = WordNetLemmatizer()
+        except Exception as e:
+            logger.error(f"Error in initializing LemmatizerOptim, attempting to download resources: {e}")
+            self.download()
+            self.lemmatizer = WordNetLemmatizer()
 
     def get_wordnet_pos(self, word: str) -> str:
         """
@@ -60,10 +72,15 @@ class LemmatizerOptim(PromptOptim):
         Returns:
             str: The optimized prompt text.
         """
-        words = prompt.split()
-        lemmatized_words = [
-            self.lemmatizer.lemmatize(word, self.get_wordnet_pos(word))
-            for word in words
-        ]
-        opti_prompt = " ".join(lemmatized_words)
-        return opti_prompt
+        try:
+            words = prompt.split()
+            lemmatized_words = [
+                self.lemmatizer.lemmatize(word, self.get_wordnet_pos(word))
+                for word in words
+            ]
+            opti_prompt = " ".join(lemmatized_words)
+            return opti_prompt
+        except Exception as e:
+            logger.error(f"Error in LemmatizerOptim, attempting to download resources: {e}")
+            self.download()
+            return self.optimize(prompt)

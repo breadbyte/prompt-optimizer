@@ -138,7 +138,8 @@ class NameReplaceOptim(PromptOptim):
         name_list = []
         try:
             sentence_tree = self.process(text)
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error in NameReplaceOptim, attempting to download resources: {e}")
             self.download()
             sentence_tree = self.process(text)
 

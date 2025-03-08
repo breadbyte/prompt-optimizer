@@ -7,6 +7,9 @@ from prompt_optimizer.poptim import (
     PunctuationOptim,
     StemmerOptim,
     StopWordOptim,
+    AutocorrectOptim,
+    SynonymReplaceOptim,
+    EntropyOptim,
 )
 from prompt_optimizer.visualize import StringDiffer
 

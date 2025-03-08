@@ -5,6 +5,7 @@ import tiktoken
 from nltk.corpus import wordnet
 
 from prompt_optimizer.poptim.base import PromptOptim
+from .logger import logger
 
 
 class SynonymReplaceOptim(PromptOptim):
@@ -21,6 +22,12 @@ class SynonymReplaceOptim(PromptOptim):
         >>> optimized_prompt = res.content
     """
 
+    def download(self):
+        """
+        Downloads the required NLTK resources.
+        """
+        nltk.download("wordnet")
+
     def __init__(self, verbose: bool = False, metrics: list = [], p: float = 0.5):
         """
         Initializes the SynonymReplaceOptim object with the specified parameters.
@@ -32,7 +39,6 @@ class SynonymReplaceOptim(PromptOptim):
         """
         super().__init__(verbose, metrics)
         self.p = p
-        nltk.download("wordnet")
         self.tokenizer = tiktoken.get_encoding("cl100k_base")
 
     def get_word_pos(self, word: str) -> str:
@@ -88,13 +94,18 @@ class SynonymReplaceOptim(PromptOptim):
         Returns:
             str: The optimized prompt with replaced synonyms.
         """
-        words = prompt.split()
-        opti_words = []
-        for word in words:
-            new_word = self.syn_replace(word)
-            if new_word != word and random.uniform(0, 1) <= self.p:
-                opti_words.append(new_word)
-            else:
-                opti_words.append(word)
+        try:
+            words = prompt.split()
+            opti_words = []
+            for word in words:
+                new_word = self.syn_replace(word)
+                if new_word != word and random.uniform(0, 1) <= self.p:
+                    opti_words.append(new_word)
+                else:
+                    opti_words.append(word)
 
-        return " ".join(opti_words)
+            return " ".join(opti_words)
+        except Exception as e:
+            logger.error(f"Error in SynonymReplaceOptim, attempting to download resources: {e}")
+            self.download()
+            return self.optimize(prompt)

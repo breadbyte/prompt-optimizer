@@ -44,6 +44,14 @@ class PromptOptim(ABC):
         """
         pass
 
+    def download(self):
+        """
+        Abstract method to download any required resources for the prompt optimization technique.
+
+        This method must be implemented by subclasses.
+        """
+        pass
+
     @protected_runner
     def run(self, prompt: str) -> str:
         """
