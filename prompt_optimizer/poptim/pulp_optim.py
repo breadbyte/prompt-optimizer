@@ -44,7 +44,7 @@ class PulpOptim(PromptOptim):
         x = LpVariable.dicts("x", range(len(tokens)), cat=LpBinary)
 
         # Define the objective function to minimize the number of deleted tokens
-        model = LpProblem("Extractive Compression", LpMinimize)
+        model = LpProblem("Extractive_Compression", LpMinimize)
         model += lpSum([1 - x[i] for i in range(len(tokens))])
 
         # Constraints to ensure that the compressed text has the target length
@@ -57,7 +57,7 @@ class PulpOptim(PromptOptim):
                     model += x[i] <= x[j]
 
         # Solve the optimization problem
-        model.solve()
+        model.solve(PULP_CBC_CMD(msg=self.verbose))
 
         # Extract the indices of the selected tokens
         selected_indices = [i for i in range(len(tokens)) if x[i].value() == 1]
